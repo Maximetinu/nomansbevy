@@ -17,4 +17,5 @@ opt-level = 1
 lto = "thin" # this affects compilation times *a lot*
 
 [dependencies]
-bevy = "0.11.0"
+# remember to remove dynamic_linking for releases
+bevy = { version = "0.11.0", features = ["dynamic_linking"] }
