@@ -23,12 +23,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let player_handle: Handle<Image> = asset_server.load("sprites/player.png");
 
-    // bouncing ball
+    // ball
     commands
         .spawn(Name::new("Player"))
         .insert(RigidBody::Dynamic)
         .insert(Collider::ball(50.0))
-        .insert(Restitution::coefficient(0.7))
         .insert(SpriteBundle {
             texture: player_handle.clone(),
             transform: Transform::default(),
