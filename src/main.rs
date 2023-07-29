@@ -25,7 +25,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // bouncing ball
     commands
-        .spawn(RigidBody::Dynamic)
+        .spawn(Name::new("Player"))
+        .insert(RigidBody::Dynamic)
         .insert(Collider::ball(50.0))
         .insert(Restitution::coefficient(0.7))
         .insert(SpriteBundle {
@@ -36,6 +37,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // ground
     commands
-        .spawn(Collider::cuboid(500.0, 50.0))
+        .spawn(Name::new("Ground"))
+        .insert(Collider::cuboid(500.0, 50.0))
         .insert(TransformBundle::from(Transform::from_xyz(0.0, -200.0, 0.0)));
 }
