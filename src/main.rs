@@ -16,11 +16,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let player_handle: Handle<Image> = asset_server.load("sprites/player.png");
 
-    commands.spawn(
-        (SpriteBundle {
-            texture: player_handle.clone(),
-            transform: Transform::default(),
-            ..default()
-        }),
-    );
+    commands.spawn(SpriteBundle {
+        texture: player_handle.clone(),
+        transform: Transform::default(),
+        ..default()
+    });
 }
