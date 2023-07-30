@@ -4,14 +4,18 @@ use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 use std::ops::Range;
 
+// TODO: investigate how to implement configurable frame rate
 const TIME_STEP: f32 = 1.0 / 60.0;
 
 fn main() {
+    // TODO: tweak window title and maybe size
     App::new()
         .add_plugins((
             DefaultPlugins,
             WorldInspectorPlugin::new(),
+            // TODO: tweak pixels per meter so player is 1m ?
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
+            // TODO: hide debug graphics in release
             RapierDebugRenderPlugin::default(),
         ))
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
@@ -42,6 +46,7 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut rapier_config: ResMut<RapierConfiguration>,
 ) {
+    // TODO: maybe turn this into player's gravity multiplier
     rapier_config.gravity = Vec2::NEG_Y * 1400.0;
 
     commands.spawn(Camera2dBundle::default());
@@ -62,6 +67,7 @@ fn setup(
             ..default()
         });
 
+    // TODO: spawn obstacle at startup, without having to wait 3s
     commands
         .spawn(Name::new("Obstacle Spawner"))
         .insert(ObstacleSpawner {
@@ -94,6 +100,7 @@ struct Score {
 }
 
 fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
+    // TODO: replace magic numbers by constans like here
     const JUMP_VELOCITY: f32 = 400.0;
     let (_, mut player_rb) = player_q.single_mut();
     player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
@@ -111,6 +118,8 @@ fn spawn_timer_just_finished(spawner_q: Query<&ObstacleSpawner>) -> bool {
     spawner_q.single().timer.just_finished()
 }
 
+// TODO: implement bounds to despawn obstacles
+// using a sensor and on_collision_exit would be nice
 fn spawn_obstacle(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -120,6 +129,8 @@ fn spawn_obstacle(
 
     let offset = rand::thread_rng().gen_range(spawner.range.clone());
 
+    // TODO: tweak image so edges are hidden
+    // TODO: investigate how to extract image size once loaded (to compute AABB, for example)
     let obstacle_handle: Handle<Image> = asset_server.load("sprites/obstacle.png");
 
     commands
@@ -188,10 +199,12 @@ fn score_up(mut score: ResMut<Score>) {
 }
 
 fn print_score(score: Res<Score>) {
+    // TODO: UI
     println!("Current score: {}", score.current);
 }
 
 fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
+    // TODO: implement reset level
     for (window, _) in windows_q.iter() {
         commands.entity(window).despawn();
     }
