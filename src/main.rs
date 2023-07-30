@@ -17,6 +17,7 @@ fn main() {
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
         .insert_resource(Score { current: 0 })
         .add_systems(Startup, setup)
+        .add_systems(PostStartup, spawn_obstacle)
         .add_systems(
             Update,
             (
