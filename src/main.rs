@@ -19,6 +19,7 @@ fn main() {
             (
                 bevy::window::close_on_esc,
                 jump.run_if(just_pressed(KeyCode::Space)),
+                spawn_obstacles,
             ),
         )
         .add_systems(
@@ -56,13 +57,63 @@ fn setup(
             ..default()
         });
 
+    commands
+        .spawn(Name::new("Obstacle Spawner"))
+        .insert(ObstacleSpawner {
+            timer: Timer::from_seconds(3.0, TimerMode::Repeating),
+        })
+        .insert(TransformBundle::from(Transform::from_translation(
+            Vec3::X * 700.0,
+        )));
+}
+
+#[derive(Component)]
+struct Player;
+
+#[derive(Component)]
+struct ObstacleCollider;
+
+#[derive(Component)]
+struct ScoreSensor;
+
+#[derive(Component)]
+struct ObstacleSpawner {
+    pub timer: Timer,
+}
+
+fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
+    const JUMP_VELOCITY: f32 = 400.0;
+    let (_, mut player_rb) = player_q.single_mut();
+    player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
+}
+
+fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<Input<KeyCode>>) -> bool {
+    move |input: Res<Input<KeyCode>>| input.just_pressed(key_code)
+}
+
+fn spawn_obstacles(
+    mut commands: Commands,
+    time: Res<Time>,
+    asset_server: Res<AssetServer>,
+    mut spawner_q: Query<(&Transform, &mut ObstacleSpawner)>,
+) {
+    let (spawner_transform, mut spawner) = spawner_q.single_mut();
+
+    spawner.timer.tick(time.delta());
+
+    if !spawner.timer.just_finished() {
+        return;
+    }
+
     let obstacle_handle: Handle<Image> = asset_server.load("sprites/obstacle.png");
 
     commands
         .spawn(Name::new("Obstacle"))
         .insert(RigidBody::KinematicVelocityBased)
         .insert(Velocity::linear(Vec2::NEG_X * 50.0))
-        .insert(SpatialBundle::default())
+        .insert(SpatialBundle::from_transform(Transform::from_translation(
+            spawner_transform.translation,
+        )))
         .with_children(|children| {
             children
                 .spawn(Name::new("Obstacle Up"))
@@ -89,25 +140,6 @@ fn setup(
                     ..default()
                 });
         });
-}
-
-#[derive(Component)]
-struct Player;
-
-#[derive(Component)]
-struct ObstacleCollider;
-
-#[derive(Component)]
-struct ScoreSensor;
-
-fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
-    const JUMP_VELOCITY: f32 = 400.0;
-    let (_, mut player_rb) = player_q.single_mut();
-    player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
-}
-
-fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<Input<KeyCode>>) -> bool {
-    move |input: Res<Input<KeyCode>>| input.just_pressed(key_code)
 }
 
 fn on_collision<T: Component, U: Component>(
