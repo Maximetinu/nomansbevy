@@ -62,8 +62,7 @@ fn setup(
         .spawn(Name::new("Obstacle"))
         .insert(RigidBody::KinematicVelocityBased)
         .insert(Velocity::linear(Vec2::NEG_X * 50.0))
-        .insert(TransformBundle::default())
-        .insert(VisibilityBundle::default())
+        .insert(SpatialBundle::default())
         .with_children(|children| {
             children
                 .spawn(Name::new("Obstacle Up"))
