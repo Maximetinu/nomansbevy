@@ -15,10 +15,17 @@ fn main() {
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
         .add_systems(Startup, setup)
         .add_systems(Update, bevy::window::close_on_esc)
+        .add_systems(Update, jump)
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut physics_config: ResMut<RapierConfiguration>,
+) {
+    physics_config.gravity = Vec2::NEG_Y * 1400.0;
+
     commands.spawn(Camera2dBundle::default());
 
     let player_handle: Handle<Image> = asset_server.load("sprites/player.png");
@@ -26,7 +33,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // ball
     commands
         .spawn(Name::new("Player"))
+        .insert(Player {})
         .insert(RigidBody::Dynamic)
+        .insert(Velocity::zero())
         .insert(Collider::ball(34.0))
         .insert(SpriteBundle {
             texture: player_handle.clone(),
@@ -39,4 +48,16 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn(Name::new("Ground"))
         .insert(Collider::cuboid(500.0, 50.0))
         .insert(TransformBundle::from(Transform::from_xyz(0.0, -200.0, 0.0)));
+}
+
+#[derive(Component)]
+struct Player;
+
+fn jump(input: Res<Input<KeyCode>>, mut player_q: Query<(&Player, &mut Velocity)>) {
+    const JUMP_VELOCITY: f32 = 400.0;
+    if !input.just_pressed(KeyCode::Space) {
+        return;
+    }
+    let (_, mut player_rb) = player_q.single_mut();
+    player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
 }
