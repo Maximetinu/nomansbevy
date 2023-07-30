@@ -31,7 +31,7 @@ fn main() {
             (
                 game_over.run_if(on_collision::<Player, ObstacleCollider>),
                 score_up.run_if(on_collision::<Player, ScoreSensor>),
-                print_score,
+                print_score.run_if(resource_changed::<Score>()),
             ),
         )
         .run();
@@ -187,9 +187,7 @@ fn score_up(mut score: ResMut<Score>) {
 }
 
 fn print_score(score: Res<Score>) {
-    if score.is_changed() {
-        println!("Current score: {}", score.current);
-    }
+    println!("Current score: {}", score.current);
 }
 
 fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
