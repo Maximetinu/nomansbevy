@@ -53,6 +53,7 @@ fn setup(
 
     let player_handle: Handle<Image> = asset_server.load("sprites/player.png");
 
+    // TODO: game over when out of bounds
     commands
         .spawn(Name::new("Player"))
         .insert(Player {})
