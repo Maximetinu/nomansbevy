@@ -17,6 +17,10 @@ fn main() {
         .add_systems(Update, bevy::window::close_on_esc)
         .add_systems(Update, jump)
         .add_systems(PostUpdate, print_collisions)
+        .add_systems(
+            PostUpdate,
+            handle_player_obstacle_collision.run_if(on_collision_enter_player_obstacle),
+        )
         .run();
 }
 
@@ -48,6 +52,7 @@ fn setup(
     // ground
     commands
         .spawn(Name::new("Ground"))
+        .insert(Obstacle {})
         .insert(Collider::cuboid(500.0, 50.0))
         .insert(TransformBundle::from(Transform::from_xyz(0.0, -200.0, 0.0)));
 
@@ -56,6 +61,9 @@ fn setup(
 
 #[derive(Component)]
 struct Player;
+
+#[derive(Component)]
+struct Obstacle;
 
 fn jump(input: Res<Input<KeyCode>>, mut player_q: Query<(&Player, &mut Velocity)>) {
     const JUMP_VELOCITY: f32 = 400.0;
@@ -77,4 +85,33 @@ fn print_collisions(
     for contact_force_event in contact_force_events.iter() {
         println!(">> Received contact force event: {contact_force_event:?}");
     }
+}
+
+fn on_collision_enter_player_obstacle(
+    mut collision_events: EventReader<CollisionEvent>,
+    player_q: Query<(Entity, &Player)>,
+    obstacle_q: Query<(Entity, &Obstacle)>,
+) -> bool {
+    let (player, _) = player_q.single();
+    let mut obstacles = obstacle_q.iter().map(|(e, _)| e);
+    let mut found_collision = false;
+    for collision_event in collision_events.iter() {
+        match collision_event {
+            CollisionEvent::Started(col_1, col_2, _) => {
+                if *col_1 == player && obstacles.any(|o| o == *col_2)
+                    || *col_2 == player && obstacles.any(|o| o == *col_1)
+                {
+                    found_collision = true;
+                    break;
+                }
+            }
+            CollisionEvent::Stopped(_, _, _) => {}
+        }
+    }
+
+    found_collision
+}
+
+fn handle_player_obstacle_collision() {
+    println!(">> Player collided with an obstacle just now");
 }
