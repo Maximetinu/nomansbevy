@@ -64,7 +64,7 @@ fn setup(
         .spawn(Name::new("Obstacle Spawner"))
         .insert(ObstacleSpawner {
             timer: Timer::from_seconds(3.0, TimerMode::Repeating),
-            range: -300.0..300.0,
+            range: -150.0..150.0,
         })
         .insert(TransformBundle::from(Transform::from_translation(
             Vec3::X * 700.0,
