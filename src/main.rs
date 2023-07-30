@@ -23,10 +23,7 @@ fn main() {
         )
         .add_systems(
             PostUpdate,
-            (
-                print_collisions,
-                handle_player_obstacle_collision.run_if(on_collision_enter::<Player, Obstacle>),
-            ),
+            handle_player_obstacle_collision.run_if(on_collision_enter::<Player, Obstacle>),
         )
         .run();
 }
@@ -80,19 +77,6 @@ fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
 
 fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<Input<KeyCode>>) -> bool {
     move |input: Res<Input<KeyCode>>| input.just_pressed(key_code)
-}
-
-fn print_collisions(
-    mut collision_events: EventReader<CollisionEvent>,
-    mut contact_force_events: EventReader<ContactForceEvent>,
-) {
-    for collision_event in collision_events.iter() {
-        println!(">> Received collision event: {collision_event:?}");
-    }
-
-    for contact_force_event in contact_force_events.iter() {
-        println!(">> Received contact force event: {contact_force_event:?}");
-    }
 }
 
 fn on_collision_enter<T: Component, U: Component>(
