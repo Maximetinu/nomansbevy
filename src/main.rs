@@ -28,7 +28,7 @@ fn main() {
         .add_systems(
             PostUpdate,
             (
-                handle_player_obstacle_collision.run_if(on_collision::<Player, ObstacleCollider>),
+                game_over.run_if(on_collision::<Player, ObstacleCollider>),
                 handle_player_score_collision.run_if(on_collision::<Player, ScoreSensor>),
             ),
         )
@@ -175,10 +175,12 @@ fn on_collision<T: Component, U: Component>(
     found_collision
 }
 
-fn handle_player_obstacle_collision() {
-    println!(">> Player collided with an obstacle just now");
-}
-
 fn handle_player_score_collision() {
     println!(">> Player entered an score sensor just now");
+}
+
+fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
+    for (window, _) in windows_q.iter() {
+        commands.entity(window).despawn();
+    }
 }
