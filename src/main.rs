@@ -1,9 +1,8 @@
-use std::ops::Range;
-
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
+use std::ops::Range;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 
