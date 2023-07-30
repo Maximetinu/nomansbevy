@@ -23,9 +23,9 @@ fn main() {
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut physics_config: ResMut<RapierConfiguration>,
+    mut rapier_config: ResMut<RapierConfiguration>,
 ) {
-    physics_config.gravity = Vec2::NEG_Y * 1400.0;
+    rapier_config.gravity = Vec2::NEG_Y * 1400.0;
 
     commands.spawn(Camera2dBundle::default());
 
