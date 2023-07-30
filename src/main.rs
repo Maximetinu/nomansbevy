@@ -48,6 +48,7 @@ fn setup(
         .spawn(Name::new("Player"))
         .insert(Player {})
         .insert(RigidBody::Dynamic)
+        .insert(LockedAxes::ROTATION_LOCKED)
         .insert(Velocity::zero())
         .insert(Collider::ball(34.0))
         .insert(ActiveEvents::COLLISION_EVENTS)
