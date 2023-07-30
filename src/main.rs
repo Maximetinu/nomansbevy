@@ -1,6 +1,9 @@
+use std::ops::Range;
+
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
+use rand::prelude::*;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 
@@ -61,6 +64,7 @@ fn setup(
         .spawn(Name::new("Obstacle Spawner"))
         .insert(ObstacleSpawner {
             timer: Timer::from_seconds(3.0, TimerMode::Repeating),
+            range: -300.0..300.0,
         })
         .insert(TransformBundle::from(Transform::from_translation(
             Vec3::X * 700.0,
@@ -79,6 +83,7 @@ struct ScoreSensor;
 #[derive(Component)]
 struct ObstacleSpawner {
     pub timer: Timer,
+    pub range: Range<f32>,
 }
 
 fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
@@ -105,6 +110,8 @@ fn spawn_obstacles(
         return;
     }
 
+    let offset = rand::thread_rng().gen_range(spawner.range.clone());
+
     let obstacle_handle: Handle<Image> = asset_server.load("sprites/obstacle.png");
 
     commands
@@ -112,7 +119,7 @@ fn spawn_obstacles(
         .insert(RigidBody::KinematicVelocityBased)
         .insert(Velocity::linear(Vec2::NEG_X * 50.0))
         .insert(SpatialBundle::from_transform(Transform::from_translation(
-            spawner_transform.translation,
+            spawner_transform.translation + Vec3::Y * offset,
         )))
         .with_children(|children| {
             children
