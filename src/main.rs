@@ -68,7 +68,6 @@ fn setup(
             ..default()
         });
 
-    // TODO: spawn obstacle at startup, without having to wait 3s
     commands
         .spawn(Name::new("Obstacle Spawner"))
         .insert(ObstacleSpawner {
