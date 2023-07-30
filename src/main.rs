@@ -125,7 +125,7 @@ fn spawn_obstacle(
     commands
         .spawn(Name::new("Obstacle"))
         .insert(RigidBody::KinematicVelocityBased)
-        .insert(Velocity::linear(Vec2::NEG_X * 50.0))
+        .insert(Velocity::linear(Vec2::NEG_X * 150.0))
         .insert(SpatialBundle::from_transform(Transform::from_translation(
             spawner_transform.translation + Vec3::Y * offset,
         )))
