@@ -14,12 +14,19 @@ fn main() {
         ))
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
         .add_systems(Startup, setup)
-        .add_systems(Update, bevy::window::close_on_esc)
-        .add_systems(Update, jump.run_if(just_pressed(KeyCode::Space)))
-        .add_systems(PostUpdate, print_collisions)
+        .add_systems(
+            Update,
+            (
+                bevy::window::close_on_esc,
+                jump.run_if(just_pressed(KeyCode::Space)),
+            ),
+        )
         .add_systems(
             PostUpdate,
-            handle_player_obstacle_collision.run_if(on_collision_enter::<Player, Obstacle>),
+            (
+                print_collisions,
+                handle_player_obstacle_collision.run_if(on_collision_enter::<Player, Obstacle>),
+            ),
         )
         .run();
 }
