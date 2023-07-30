@@ -16,6 +16,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, bevy::window::close_on_esc)
         .add_systems(Update, jump)
+        .add_systems(PostUpdate, print_collisions)
         .run();
 }
 
@@ -37,6 +38,7 @@ fn setup(
         .insert(RigidBody::Dynamic)
         .insert(Velocity::zero())
         .insert(Collider::ball(34.0))
+        .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(SpriteBundle {
             texture: player_handle.clone(),
             transform: Transform::default(),
@@ -48,6 +50,8 @@ fn setup(
         .spawn(Name::new("Ground"))
         .insert(Collider::cuboid(500.0, 50.0))
         .insert(TransformBundle::from(Transform::from_xyz(0.0, -200.0, 0.0)));
+
+    // Note: .insert(Sensor) makes it a Trigger
 }
 
 #[derive(Component)]
@@ -60,4 +64,17 @@ fn jump(input: Res<Input<KeyCode>>, mut player_q: Query<(&Player, &mut Velocity)
     }
     let (_, mut player_rb) = player_q.single_mut();
     player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
+}
+
+fn print_collisions(
+    mut collision_events: EventReader<CollisionEvent>,
+    mut contact_force_events: EventReader<ContactForceEvent>,
+) {
+    for collision_event in collision_events.iter() {
+        println!(">> Received collision event: {collision_event:?}");
+    }
+
+    for contact_force_event in contact_force_events.iter() {
+        println!(">> Received contact force event: {contact_force_event:?}");
+    }
 }
