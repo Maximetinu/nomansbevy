@@ -23,7 +23,11 @@ fn main() {
         )
         .add_systems(
             PostUpdate,
-            handle_player_obstacle_collision.run_if(on_collision_enter::<Player, Obstacle>),
+            (
+                handle_player_obstacle_collision
+                    .run_if(on_collision_enter::<Player, ObstacleCollider>),
+                handle_player_score_collision.run_if(on_collision_enter::<Player, ScoreSensor>),
+            ),
         )
         .run();
 }
@@ -61,7 +65,7 @@ fn setup(
         .with_children(|children| {
             children
                 .spawn(Name::new("Obstacle Up"))
-                .insert(Obstacle {})
+                .insert(ObstacleCollider {})
                 .insert(Collider::cuboid(32.0, 128.0))
                 .insert(SpriteBundle {
                     texture: obstacle_handle.clone(),
@@ -70,12 +74,13 @@ fn setup(
                 });
             children
                 .spawn(Name::new("Score sensor"))
+                .insert(ScoreSensor {})
                 .insert(TransformBundle::default())
                 .insert(Collider::cuboid(10.0, 122.0))
                 .insert(Sensor);
             children
                 .spawn(Name::new("Obstacle Down"))
-                .insert(Obstacle {})
+                .insert(ObstacleCollider {})
                 .insert(Collider::cuboid(32.0, 128.0))
                 .insert(SpriteBundle {
                     texture: obstacle_handle.clone(),
@@ -83,15 +88,16 @@ fn setup(
                     ..default()
                 });
         });
-
-    // Note: .insert(Sensor) makes it a Trigger
 }
 
 #[derive(Component)]
 struct Player;
 
 #[derive(Component)]
-struct Obstacle;
+struct ObstacleCollider;
+
+#[derive(Component)]
+struct ScoreSensor;
 
 fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
     const JUMP_VELOCITY: f32 = 400.0;
@@ -131,4 +137,8 @@ fn on_collision_enter<T: Component, U: Component>(
 
 fn handle_player_obstacle_collision() {
     println!(">> Player collided with an obstacle just now");
+}
+
+fn handle_player_score_collision() {
+    println!(">> Player entered an score sensor just now");
 }
