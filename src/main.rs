@@ -15,7 +15,7 @@ fn main() {
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
         .add_systems(Startup, setup)
         .add_systems(Update, bevy::window::close_on_esc)
-        .add_systems(Update, jump)
+        .add_systems(Update, jump.run_if(just_pressed(KeyCode::Space)))
         .add_systems(PostUpdate, print_collisions)
         .add_systems(
             PostUpdate,
@@ -65,13 +65,14 @@ struct Player;
 #[derive(Component)]
 struct Obstacle;
 
-fn jump(input: Res<Input<KeyCode>>, mut player_q: Query<(&Player, &mut Velocity)>) {
+fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
     const JUMP_VELOCITY: f32 = 400.0;
-    if !input.just_pressed(KeyCode::Space) {
-        return;
-    }
     let (_, mut player_rb) = player_q.single_mut();
     player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
+}
+
+fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<Input<KeyCode>>) -> bool {
+    move |input: Res<Input<KeyCode>>| input.just_pressed(key_code)
 }
 
 fn print_collisions(
