@@ -22,7 +22,8 @@ fn main() {
             (
                 bevy::window::close_on_esc,
                 jump.run_if(just_pressed(KeyCode::Space)),
-                spawn_obstacles,
+                tick_spawn_timer,
+                spawn_obstacle.run_if(spawn_timer_just_finished),
             ),
         )
         .add_systems(
@@ -102,19 +103,20 @@ fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<Input<KeyCode>>) -> bool {
     move |input: Res<Input<KeyCode>>| input.just_pressed(key_code)
 }
 
-fn spawn_obstacles(
+fn tick_spawn_timer(time: Res<Time>, mut spawner_q: Query<&mut ObstacleSpawner>) {
+    spawner_q.single_mut().timer.tick(time.delta());
+}
+
+fn spawn_timer_just_finished(spawner_q: Query<&ObstacleSpawner>) -> bool {
+    spawner_q.single().timer.just_finished()
+}
+
+fn spawn_obstacle(
     mut commands: Commands,
-    time: Res<Time>,
     asset_server: Res<AssetServer>,
-    mut spawner_q: Query<(&Transform, &mut ObstacleSpawner)>,
+    mut spawner_q: Query<(&Transform, &ObstacleSpawner)>,
 ) {
-    let (spawner_transform, mut spawner) = spawner_q.single_mut();
-
-    spawner.timer.tick(time.delta());
-
-    if !spawner.timer.just_finished() {
-        return;
-    }
+    let (spawner_transform, spawner) = spawner_q.single_mut();
 
     let offset = rand::thread_rng().gen_range(spawner.range.clone());
 
