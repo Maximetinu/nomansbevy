@@ -60,6 +60,38 @@ fn setup(
         .insert(Collider::cuboid(500.0, 50.0))
         .insert(TransformBundle::from(Transform::from_xyz(0.0, -200.0, 0.0)));
 
+    let obstacle_handle: Handle<Image> = asset_server.load("sprites/obstacle.png");
+
+    commands
+        .spawn(Name::new("Obstacle"))
+        .insert(TransformBundle::default())
+        .insert(VisibilityBundle::default())
+        .with_children(|children| {
+            children
+                .spawn(Name::new("Obstacle Up"))
+                .insert(Obstacle {})
+                .insert(Collider::cuboid(32.0, 128.0))
+                .insert(SpriteBundle {
+                    texture: obstacle_handle.clone(),
+                    transform: Transform::from_translation(Vec3::Y * 250.0),
+                    ..default()
+                });
+            children
+                .spawn(Name::new("Score sensor"))
+                .insert(TransformBundle::default())
+                .insert(Collider::cuboid(10.0, 122.0))
+                .insert(Sensor);
+            children
+                .spawn(Name::new("Obstacle Down"))
+                .insert(Obstacle {})
+                .insert(Collider::cuboid(32.0, 128.0))
+                .insert(SpriteBundle {
+                    texture: obstacle_handle.clone(),
+                    transform: Transform::from_translation(Vec3::NEG_Y * 250.0),
+                    ..default()
+                });
+        });
+
     // Note: .insert(Sensor) makes it a Trigger
 }
 
