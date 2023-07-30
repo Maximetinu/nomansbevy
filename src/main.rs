@@ -25,9 +25,8 @@ fn main() {
         .add_systems(
             PostUpdate,
             (
-                handle_player_obstacle_collision
-                    .run_if(on_collision_enter::<Player, ObstacleCollider>),
-                handle_player_score_collision.run_if(on_collision_enter::<Player, ScoreSensor>),
+                handle_player_obstacle_collision.run_if(on_collision::<Player, ObstacleCollider>),
+                handle_player_score_collision.run_if(on_collision::<Player, ScoreSensor>),
             ),
         )
         .run();
@@ -126,7 +125,7 @@ fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<Input<KeyCode>>) -> bool {
     move |input: Res<Input<KeyCode>>| input.just_pressed(key_code)
 }
 
-fn on_collision_enter<T: Component, U: Component>(
+fn on_collision<T: Component, U: Component>(
     mut collision_events: EventReader<CollisionEvent>,
     first_q: Query<(Entity, &T)>,
     second_q: Query<(Entity, &U)>,
