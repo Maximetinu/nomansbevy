@@ -16,6 +16,7 @@ fn main() {
             RapierDebugRenderPlugin::default(),
         ))
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
+        .insert_resource(Score { current: 0 })
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -29,7 +30,8 @@ fn main() {
             PostUpdate,
             (
                 game_over.run_if(on_collision::<Player, ObstacleCollider>),
-                handle_player_score_collision.run_if(on_collision::<Player, ScoreSensor>),
+                score_up.run_if(on_collision::<Player, ScoreSensor>),
+                print_score,
             ),
         )
         .run();
@@ -84,6 +86,11 @@ struct ScoreSensor;
 struct ObstacleSpawner {
     pub timer: Timer,
     pub range: Range<f32>,
+}
+
+#[derive(Resource)]
+struct Score {
+    current: u8, // yes, u8; if player reaches 255, he beats the game
 }
 
 fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
@@ -175,8 +182,14 @@ fn on_collision<T: Component, U: Component>(
     found_collision
 }
 
-fn handle_player_score_collision() {
-    println!(">> Player entered an score sensor just now");
+fn score_up(mut score: ResMut<Score>) {
+    score.current += 1;
+}
+
+fn print_score(score: Res<Score>) {
+    if score.is_changed() {
+        println!("Current score: {}", score.current);
+    }
 }
 
 fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
