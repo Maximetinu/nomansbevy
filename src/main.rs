@@ -27,7 +27,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(Name::new("Player"))
         .insert(RigidBody::Dynamic)
-        .insert(Collider::ball(50.0))
+        .insert(Collider::ball(34.0))
         .insert(SpriteBundle {
             texture: player_handle.clone(),
             transform: Transform::default(),
