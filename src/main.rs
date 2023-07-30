@@ -39,7 +39,6 @@ fn setup(
 
     let player_handle: Handle<Image> = asset_server.load("sprites/player.png");
 
-    // ball
     commands
         .spawn(Name::new("Player"))
         .insert(Player {})
@@ -52,13 +51,6 @@ fn setup(
             transform: Transform::default(),
             ..default()
         });
-
-    // ground
-    commands
-        .spawn(Name::new("Ground"))
-        .insert(Obstacle {})
-        .insert(Collider::cuboid(500.0, 50.0))
-        .insert(TransformBundle::from(Transform::from_xyz(0.0, -200.0, 0.0)));
 
     let obstacle_handle: Handle<Image> = asset_server.load("sprites/obstacle.png");
 
