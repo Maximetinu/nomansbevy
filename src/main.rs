@@ -112,7 +112,7 @@ fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
     player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
 }
 
-// Artificial perpetual linear movement. We can do this or use a Kinematic Rigidbody
+// Artificial perpetual linear movement. We could replace this by a Velocity + Rigidbody
 fn r#move(mut moving_q: Query<(&Movement, &mut Transform)>, time: Res<Time>) {
     for (movement, mut transform) in moving_q.iter_mut() {
         transform.translation += movement.0.extend(0.0) * time.delta_seconds();
