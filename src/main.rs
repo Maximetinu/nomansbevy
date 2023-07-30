@@ -19,7 +19,7 @@ fn main() {
         .add_systems(PostUpdate, print_collisions)
         .add_systems(
             PostUpdate,
-            handle_player_obstacle_collision.run_if(on_collision_enter_player_obstacle),
+            handle_player_obstacle_collision.run_if(on_collision_enter::<Player, Obstacle>),
         )
         .run();
 }
@@ -87,19 +87,20 @@ fn print_collisions(
     }
 }
 
-fn on_collision_enter_player_obstacle(
+fn on_collision_enter<T: Component, U: Component>(
     mut collision_events: EventReader<CollisionEvent>,
-    player_q: Query<(Entity, &Player)>,
-    obstacle_q: Query<(Entity, &Obstacle)>,
+    first_q: Query<(Entity, &T)>,
+    second_q: Query<(Entity, &U)>,
 ) -> bool {
-    let (player, _) = player_q.single();
-    let mut obstacles = obstacle_q.iter().map(|(e, _)| e);
+    let (first_entity, _) = first_q.single();
+    let mut second_entities = second_q.iter().map(|(e, _)| e);
     let mut found_collision = false;
+
     for collision_event in collision_events.iter() {
         match collision_event {
             CollisionEvent::Started(col_1, col_2, _) => {
-                if *col_1 == player && obstacles.any(|o| o == *col_2)
-                    || *col_2 == player && obstacles.any(|o| o == *col_1)
+                if (*col_1 == first_entity && second_entities.any(|o| o == *col_2))
+                    || (*col_2 == first_entity && second_entities.any(|o| o == *col_1))
                 {
                     found_collision = true;
                     break;
