@@ -19,7 +19,6 @@ fn main() {
             (
                 bevy::window::close_on_esc,
                 jump.run_if(just_pressed(KeyCode::Space)),
-                r#move,
             ),
         )
         .add_systems(
@@ -61,9 +60,8 @@ fn setup(
 
     commands
         .spawn(Name::new("Obstacle"))
-        .insert(Movement {
-            velocity: Vec2::NEG_X * 50.0, // px/s
-        })
+        .insert(RigidBody::KinematicVelocityBased)
+        .insert(Velocity::linear(Vec2::NEG_X * 50.0))
         .insert(TransformBundle::default())
         .insert(VisibilityBundle::default())
         .with_children(|children| {
@@ -103,22 +101,10 @@ struct ObstacleCollider;
 #[derive(Component)]
 struct ScoreSensor;
 
-#[derive(Component)]
-struct Movement {
-    pub velocity: Vec2,
-}
-
 fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
     const JUMP_VELOCITY: f32 = 400.0;
     let (_, mut player_rb) = player_q.single_mut();
     player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
-}
-
-// Artificial perpetual linear movement. We could replace this by a Velocity + Rigidbody
-fn r#move(mut moving_q: Query<(&Movement, &mut Transform)>, time: Res<Time>) {
-    for (movement, mut transform) in moving_q.iter_mut() {
-        transform.translation += movement.velocity.extend(0.0) * time.delta_seconds();
-    }
 }
 
 fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<Input<KeyCode>>) -> bool {
