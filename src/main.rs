@@ -114,9 +114,9 @@ fn spawn_timer_just_finished(spawner_q: Query<&ObstacleSpawner>) -> bool {
 fn spawn_obstacle(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut spawner_q: Query<(&Transform, &ObstacleSpawner)>,
+    spawner_q: Query<(&Transform, &ObstacleSpawner)>,
 ) {
-    let (spawner_transform, spawner) = spawner_q.single_mut();
+    let (spawner_transform, spawner) = spawner_q.single();
 
     let offset = rand::thread_rng().gen_range(spawner.range.clone());
 
