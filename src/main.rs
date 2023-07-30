@@ -62,7 +62,7 @@ fn setup(
     commands
         .spawn(Name::new("Obstacle"))
         .insert(Movement {
-            0: Vec2::NEG_X * 50.0, // px/s
+            velocity: Vec2::NEG_X * 50.0, // px/s
         })
         .insert(TransformBundle::default())
         .insert(VisibilityBundle::default())
@@ -104,7 +104,9 @@ struct ObstacleCollider;
 struct ScoreSensor;
 
 #[derive(Component)]
-struct Movement(Vec2);
+struct Movement {
+    pub velocity: Vec2,
+}
 
 fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
     const JUMP_VELOCITY: f32 = 400.0;
@@ -115,7 +117,7 @@ fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
 // Artificial perpetual linear movement. We could replace this by a Velocity + Rigidbody
 fn r#move(mut moving_q: Query<(&Movement, &mut Transform)>, time: Res<Time>) {
     for (movement, mut transform) in moving_q.iter_mut() {
-        transform.translation += movement.0.extend(0.0) * time.delta_seconds();
+        transform.translation += movement.velocity.extend(0.0) * time.delta_seconds();
     }
 }
 
