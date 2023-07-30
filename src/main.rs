@@ -41,6 +41,7 @@ fn main() {
         .run();
 }
 
+// TODO: split this system into many spawns, so it's very visibile what's happening when looking at the schedule
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
