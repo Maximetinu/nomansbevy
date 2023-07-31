@@ -16,7 +16,15 @@ fn main() {
         ))
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
         .insert_resource(Score { current: 0 })
-        .add_systems(Startup, setup)
+        .add_systems(
+            Startup,
+            (
+                setup_artificial_gravity,
+                spawn_camera,
+                spawn_player,
+                spawn_obstacle_spawner,
+            ),
+        )
         .add_systems(PostStartup, spawn_obstacle)
         .add_systems(
             Update,
@@ -38,17 +46,16 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut rapier_config: ResMut<RapierConfiguration>,
-) {
+fn setup_artificial_gravity(mut rapier_config: ResMut<RapierConfiguration>) {
     rapier_config.gravity = Vec2::NEG_Y * 1400.0;
+}
 
+fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
+}
 
+fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     let player_handle: Handle<Image> = asset_server.load("sprites/player.png");
-
     commands
         .spawn(Name::new("Player"))
         .insert(Player {})
@@ -62,7 +69,9 @@ fn setup(
             transform: Transform::default(),
             ..default()
         });
+}
 
+fn spawn_obstacle_spawner(mut commands: Commands) {
     commands
         .spawn(Name::new("Obstacle Spawner"))
         .insert(ObstacleSpawner {
