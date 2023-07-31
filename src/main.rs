@@ -23,6 +23,7 @@ fn main() {
                 spawn_camera,
                 spawn_player,
                 spawn_obstacle_spawner,
+                spawn_bounds,
             ),
         )
         .add_systems(PostStartup, spawn_obstacle)
@@ -39,6 +40,7 @@ fn main() {
             PostUpdate,
             (
                 game_over.run_if(on_collision::<Player, ObstacleCollider>),
+                game_over.run_if(on_collision_exit::<Player, BoundsSensor>),
                 score_up.run_if(on_collision::<Player, ScoreSensor>),
                 print_score.run_if(resource_changed::<Score>()),
             ),
@@ -83,6 +85,15 @@ fn spawn_obstacle_spawner(mut commands: Commands) {
         )));
 }
 
+fn spawn_bounds(mut commands: Commands) {
+    commands
+        .spawn(Name::new("Bounds"))
+        .insert(TransformBundle::default())
+        .insert(BoundsSensor {})
+        .insert(Collider::cuboid(700.0, 400.0))
+        .insert(Sensor {});
+}
+
 #[derive(Component)]
 struct Player;
 
@@ -91,6 +102,9 @@ struct ObstacleCollider;
 
 #[derive(Component)]
 struct ScoreSensor;
+
+#[derive(Component)]
+struct BoundsSensor;
 
 #[derive(Component)]
 struct ObstacleSpawner {
@@ -187,6 +201,32 @@ fn on_collision<T: Component, U: Component>(
                 }
             }
             CollisionEvent::Stopped(_, _, _) => {}
+        }
+    }
+
+    found_collision
+}
+
+fn on_collision_exit<T: Component, U: Component>(
+    mut collision_events: EventReader<CollisionEvent>,
+    first_q: Query<(Entity, &T)>,
+    second_q: Query<(Entity, &U)>,
+) -> bool {
+    let (first_entity, _) = first_q.single();
+    let mut second_entities = second_q.iter().map(|(e, _)| e);
+    let mut found_collision = false;
+
+    for collision_event in collision_events.iter() {
+        match collision_event {
+            CollisionEvent::Started(_, _, _) => {}
+            CollisionEvent::Stopped(col_1, col_2, _) => {
+                if (*col_1 == first_entity && second_entities.any(|o| o == *col_2))
+                    || (*col_2 == first_entity && second_entities.any(|o| o == *col_1))
+                {
+                    found_collision = true;
+                    break;
+                }
+            }
         }
     }
 
