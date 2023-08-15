@@ -39,9 +39,9 @@ fn main() {
         .add_systems(
             PostUpdate,
             (
-                game_over.run_if(on_collision::<Player, ObstacleCollider, true>),
-                game_over.run_if(on_collision::<Player, BoundsSensor, false>),
-                score_up.run_if(on_collision::<Player, ScoreSensor, true>),
+                game_over.run_if(on_collision::<Player, ObstacleCollider, STARTED>),
+                game_over.run_if(on_collision::<Player, BoundsSensor, STOPPED>),
+                score_up.run_if(on_collision::<Player, ScoreSensor, STARTED>),
                 print_score.run_if(resource_changed::<Score>()),
             ),
         )
@@ -181,14 +181,11 @@ fn spawn_obstacle(
         });
 }
 
-// TODO: use enum instead of bool
-// #[derive(PartialEq, Clone, Copy)]
-// enum CollisionType {
-//     Started,
-//     Stopped,
-// }
+// Workaround to generic consts only supporting primitive types
+pub const STARTED: bool = true;
+pub const STOPPED: bool = false;
 
-fn on_collision<T: Component, U: Component, const COLLISION_STARTED: bool>(
+fn on_collision<T: Component, U: Component, const COLLISION_TYPE: bool>(
     mut collision_events: EventReader<CollisionEvent>,
     first_q: Query<(Entity, &T)>,
     second_q: Query<(Entity, &U)>,
@@ -198,9 +195,9 @@ fn on_collision<T: Component, U: Component, const COLLISION_STARTED: bool>(
     let mut found_collision = false;
 
     for collision_event in collision_events.iter() {
-        match (collision_event, COLLISION_STARTED) {
-            (CollisionEvent::Started(col_1, col_2, _), true)
-            | (CollisionEvent::Stopped(col_1, col_2, _), false) => {
+        match (collision_event, COLLISION_TYPE) {
+            (CollisionEvent::Started(col_1, col_2, _), STARTED)
+            | (CollisionEvent::Stopped(col_1, col_2, _), STOPPED) => {
                 if (*col_1 == first_entity && second_entities.any(|o| o == *col_2))
                     || (*col_2 == first_entity && second_entities.any(|o| o == *col_1))
                 {
