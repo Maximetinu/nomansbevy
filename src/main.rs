@@ -218,7 +218,6 @@ fn on_collision<T: Component, U: Component, V: CollisionVariant>(
                     || (first_entities.contains(col_2) && second_entities.contains(col_1))
                 {
                     return true;
-                    break;
                 }
             }
             _ => {}
