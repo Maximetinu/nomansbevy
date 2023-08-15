@@ -224,10 +224,11 @@ fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
         match (collision_event, V::VARIANT) {
             (CollisionEvent::Started(col_1, col_2, _), CollisionType::Started)
             | (CollisionEvent::Stopped(col_1, col_2, _), CollisionType::Stopped) => {
-                if (first_entities.contains(col_1) && second_entities.contains(col_2))
-                    || (first_entities.contains(col_2) && second_entities.contains(col_1))
-                {
+                // let's ensure that the colliding tuple is always (T, U) and not (U, T)
+                if first_entities.contains(col_1) && second_entities.contains(col_2) {
                     collisions.push((col_1.clone(), col_2.clone()));
+                } else if first_entities.contains(col_2) && second_entities.contains(col_1) {
+                    collisions.push((col_2.clone(), col_1.clone()));
                 }
             }
             _ => {}
