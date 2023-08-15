@@ -39,9 +39,9 @@ fn main() {
         .add_systems(
             PostUpdate,
             (
-                game_over.run_if(on_collision::<Player, ObstacleCollider, STARTED>),
-                game_over.run_if(on_collision::<Player, BoundsSensor, STOPPED>),
-                score_up.run_if(on_collision::<Player, ScoreSensor, STARTED>),
+                game_over.run_if(on_collision::<Player, ObstacleCollider, Started>),
+                game_over.run_if(on_collision::<Player, BoundsSensor, Stopped>),
+                score_up.run_if(on_collision::<Player, ScoreSensor, Started>),
                 print_score.run_if(resource_changed::<Score>()),
             ),
         )
@@ -182,10 +182,26 @@ fn spawn_obstacle(
 }
 
 // Workaround to generic consts only supporting primitive types
-pub const STARTED: bool = true;
-pub const STOPPED: bool = false;
+trait CollisionVariant {
+    const VARIANT: CollisionType;
+}
 
-fn on_collision<T: Component, U: Component, const COLLISION_TYPE: bool>(
+struct Started;
+impl CollisionVariant for Started {
+    const VARIANT: CollisionType = CollisionType::Started;
+}
+
+struct Stopped;
+impl CollisionVariant for Stopped {
+    const VARIANT: CollisionType = CollisionType::Stopped;
+}
+
+enum CollisionType {
+    Started,
+    Stopped,
+}
+
+fn on_collision<T: Component, U: Component, V: CollisionVariant>(
     mut collision_events: EventReader<CollisionEvent>,
     first_q: Query<(Entity, &T)>,
     second_q: Query<(Entity, &U)>,
@@ -195,9 +211,9 @@ fn on_collision<T: Component, U: Component, const COLLISION_TYPE: bool>(
     let mut found_collision = false;
 
     for collision_event in collision_events.iter() {
-        match (collision_event, COLLISION_TYPE) {
-            (CollisionEvent::Started(col_1, col_2, _), STARTED)
-            | (CollisionEvent::Stopped(col_1, col_2, _), STOPPED) => {
+        match (collision_event, V::VARIANT) {
+            (CollisionEvent::Started(col_1, col_2, _), CollisionType::Started)
+            | (CollisionEvent::Stopped(col_1, col_2, _), CollisionType::Stopped) => {
                 if (*col_1 == first_entity && second_entities.any(|o| o == *col_2))
                     || (*col_2 == first_entity && second_entities.any(|o| o == *col_1))
                 {
