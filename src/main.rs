@@ -22,6 +22,7 @@ fn main() {
                 setup_artificial_gravity,
                 spawn_camera,
                 spawn_player,
+                spawn_player,
                 spawn_obstacle_spawner,
                 spawn_bounds,
             ),
@@ -203,21 +204,20 @@ enum CollisionType {
 
 fn on_collision<T: Component, U: Component, V: CollisionVariant>(
     mut collision_events: EventReader<CollisionEvent>,
-    first_q: Query<(Entity, &T)>,
-    second_q: Query<(Entity, &U)>,
+    first_q: Query<Entity, With<T>>,
+    second_q: Query<Entity, With<U>>,
 ) -> bool {
-    let (first_entity, _) = first_q.single();
-    let mut second_entities = second_q.iter().map(|(e, _)| e);
-    let mut found_collision = false;
+    let first_entities: Vec<Entity> = first_q.iter().collect();
+    let second_entities: Vec<Entity> = second_q.iter().collect();
 
     for collision_event in collision_events.iter() {
         match (collision_event, V::VARIANT) {
             (CollisionEvent::Started(col_1, col_2, _), CollisionType::Started)
             | (CollisionEvent::Stopped(col_1, col_2, _), CollisionType::Stopped) => {
-                if (*col_1 == first_entity && second_entities.any(|o| o == *col_2))
-                    || (*col_2 == first_entity && second_entities.any(|o| o == *col_1))
+                if (first_entities.contains(col_1) && second_entities.contains(col_2))
+                    || (first_entities.contains(col_2) && second_entities.contains(col_1))
                 {
-                    found_collision = true;
+                    return true;
                     break;
                 }
             }
@@ -225,7 +225,7 @@ fn on_collision<T: Component, U: Component, V: CollisionVariant>(
         }
     }
 
-    found_collision
+    false
 }
 
 fn score_up(mut score: ResMut<Score>) {
