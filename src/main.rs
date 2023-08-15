@@ -22,7 +22,6 @@ fn main() {
                 setup_artificial_gravity,
                 spawn_camera,
                 spawn_player,
-                spawn_player,
                 spawn_obstacle_spawner,
                 spawn_bounds,
             ),
