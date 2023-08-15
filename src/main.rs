@@ -206,11 +206,11 @@ fn on_collision<T: Component, U: Component, V: CollisionVariant>(
     first_q: Query<Entity, With<T>>,
     second_q: Query<Entity, With<U>>,
 ) -> bool {
+    // this could be optimized with an additional const generic param to break the loop
+    // when 1 have been found but I'm leaving it like this for simplicity and ergonomics
     !get_collisions::<T, U, V>(collision_events, first_q, second_q).is_empty()
 }
 
-// TODO: opt-in const-parametrized way of halting when 1 collision is found,
-// as a performance optimization, but in a way that it defaults to get them all
 fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
     mut collision_events: EventReader<CollisionEvent>,
     first_q: Query<Entity, With<T>>,
