@@ -39,9 +39,9 @@ fn main() {
         .add_systems(
             PostUpdate,
             (
-                game_over.run_if(on_collision::<Player, ObstacleCollider>),
-                game_over.run_if(on_collision_exit::<Player, BoundsSensor>),
-                score_up.run_if(on_collision::<Player, ScoreSensor>),
+                game_over.run_if(on_collision::<Player, ObstacleCollider, true>),
+                game_over.run_if(on_collision::<Player, BoundsSensor, false>),
+                score_up.run_if(on_collision::<Player, ScoreSensor, true>),
                 print_score.run_if(resource_changed::<Score>()),
             ),
         )
@@ -181,7 +181,14 @@ fn spawn_obstacle(
         });
 }
 
-fn on_collision<T: Component, U: Component>(
+// TODO: use enum instead of bool
+// #[derive(PartialEq, Clone, Copy)]
+// enum CollisionType {
+//     Started,
+//     Stopped,
+// }
+
+fn on_collision<T: Component, U: Component, const COLLISION_STARTED: bool>(
     mut collision_events: EventReader<CollisionEvent>,
     first_q: Query<(Entity, &T)>,
     second_q: Query<(Entity, &U)>,
@@ -191,8 +198,9 @@ fn on_collision<T: Component, U: Component>(
     let mut found_collision = false;
 
     for collision_event in collision_events.iter() {
-        match collision_event {
-            CollisionEvent::Started(col_1, col_2, _) => {
+        match (collision_event, COLLISION_STARTED) {
+            (CollisionEvent::Started(col_1, col_2, _), true)
+            | (CollisionEvent::Stopped(col_1, col_2, _), false) => {
                 if (*col_1 == first_entity && second_entities.any(|o| o == *col_2))
                     || (*col_2 == first_entity && second_entities.any(|o| o == *col_1))
                 {
@@ -200,33 +208,7 @@ fn on_collision<T: Component, U: Component>(
                     break;
                 }
             }
-            CollisionEvent::Stopped(_, _, _) => {}
-        }
-    }
-
-    found_collision
-}
-
-fn on_collision_exit<T: Component, U: Component>(
-    mut collision_events: EventReader<CollisionEvent>,
-    first_q: Query<(Entity, &T)>,
-    second_q: Query<(Entity, &U)>,
-) -> bool {
-    let (first_entity, _) = first_q.single();
-    let mut second_entities = second_q.iter().map(|(e, _)| e);
-    let mut found_collision = false;
-
-    for collision_event in collision_events.iter() {
-        match collision_event {
-            CollisionEvent::Started(_, _, _) => {}
-            CollisionEvent::Stopped(col_1, col_2, _) => {
-                if (*col_1 == first_entity && second_entities.any(|o| o == *col_2))
-                    || (*col_2 == first_entity && second_entities.any(|o| o == *col_1))
-                {
-                    found_collision = true;
-                    break;
-                }
-            }
+            _ => {}
         }
     }
 
