@@ -202,12 +202,23 @@ enum CollisionType {
 }
 
 fn on_collision<T: Component, U: Component, V: CollisionVariant>(
-    mut collision_events: EventReader<CollisionEvent>,
+    collision_events: EventReader<CollisionEvent>,
     first_q: Query<Entity, With<T>>,
     second_q: Query<Entity, With<U>>,
 ) -> bool {
+    !get_collisions::<T, U, V>(collision_events, first_q, second_q).is_empty()
+}
+
+// TODO: opt-in const-parametrized way of halting when 1 collision is found,
+// as a performance optimization, but in a way that it defaults to get them all
+fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
+    mut collision_events: EventReader<CollisionEvent>,
+    first_q: Query<Entity, With<T>>,
+    second_q: Query<Entity, With<U>>,
+) -> Vec<(Entity, Entity)> {
     let first_entities: Vec<Entity> = first_q.iter().collect();
     let second_entities: Vec<Entity> = second_q.iter().collect();
+    let mut collisions = vec![];
 
     for collision_event in collision_events.iter() {
         match (collision_event, V::VARIANT) {
@@ -216,14 +227,14 @@ fn on_collision<T: Component, U: Component, V: CollisionVariant>(
                 if (first_entities.contains(col_1) && second_entities.contains(col_2))
                     || (first_entities.contains(col_2) && second_entities.contains(col_1))
                 {
-                    return true;
+                    collisions.push((col_1.clone(), col_2.clone()));
                 }
             }
             _ => {}
         }
     }
 
-    false
+    collisions
 }
 
 fn score_up(mut score: ResMut<Score>) {
