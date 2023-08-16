@@ -211,6 +211,13 @@ fn on_collision<T: Component, U: Component, V: CollisionVariant>(
     !get_collisions::<T, U, V>(collision_events, first_q, second_q).is_empty()
 }
 
+// IDEA:
+// - introduce RigidBodyOwner(Entity) struct, or RigidBodyRoot
+// - exclusive system that runs always that autopopulates any Collider With<Parent> and Without<RigidBody> with RigidBodyRoot
+// or inverse, gets any RigidBody With<Children> and Without<Parent> and recursively adds this component
+// - Then, we build a descendants<Entity, Root> map
+// and, if a collider in a collision_event that we are going to add, has an equivalent in descendants[col.e],
+// then we add its Root instead of it
 fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
     mut collision_events: EventReader<CollisionEvent>,
     first_q: Query<Entity, With<T>>,
