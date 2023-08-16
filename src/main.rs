@@ -245,6 +245,17 @@ fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
     collisions
 }
 
+// actually... now that I think of it
+// I should just add a collider to the ObstacleRoot too, and that's it, call it a day
+// and use this collider to detect if it goes out of bounds
+// there is a problem with detecting if a child collider goes out of bounds:
+// that the others can remain visible
+// so we'd see the whole obstacle despawning
+// this won't happen without gravity of course because they are aligned... but...
+// I think Unity would treat it as the 2 children collider being a composite collider,
+// and both of them had to go out of collision to perform the out...
+// but uff that's scary, much more complex
+
 fn score_up(mut score: ResMut<Score>) {
     score.current += 1;
 }
