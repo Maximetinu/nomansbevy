@@ -15,7 +15,7 @@ fn main() {
             RapierDebugRenderPlugin::default(),
         ))
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
-        .insert_resource(Score { current: 0 })
+        .insert_resource(Score(0))
         .add_systems(
             Startup,
             (
@@ -112,10 +112,8 @@ struct ObstacleSpawner {
     pub range: Range<f32>,
 }
 
-#[derive(Resource)]
-struct Score {
-    current: u8, // yes, u8; if player reaches 255, he beats the game
-}
+#[derive(Resource, Deref, DerefMut)]
+struct Score(u8); // yes, u8; if player reaches 255, he beats the game
 
 fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
     const JUMP_VELOCITY: f32 = 400.0;
@@ -239,11 +237,11 @@ fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
 }
 
 fn score_up(mut score: ResMut<Score>) {
-    score.current += 1;
+    **score += 1;
 }
 
 fn print_score(score: Res<Score>) {
-    println!("Current score: {}", score.current);
+    println!("Current score: {}", **score);
 }
 
 fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
