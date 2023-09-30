@@ -43,9 +43,22 @@ fn main() {
                 game_over.run_if(on_collision::<Player, BoundsSensor, Stopped>),
                 score_up.run_if(on_collision::<Player, ScoreSensor, Started>),
                 print_score.run_if(resource_changed::<Score>()),
+                get_collisions::<Obstacle, BoundsSensor, Stopped>
+                    .pipe(map_entity_pairs_lhs)
+                    .pipe(despawn),
             ),
         )
         .run();
+}
+
+fn map_entity_pairs_lhs(In(entity_pairs): In<Vec<(Entity, Entity)>>) -> Vec<Entity> {
+    entity_pairs.iter().map(|(lhs, rhs)| lhs).cloned().collect()
+}
+
+fn despawn(In(entities): In<Vec<Entity>>, mut commands: Commands) {
+    for e in entities {
+        commands.entity(e).despawn_recursive();
+    }
 }
 
 fn setup_artificial_gravity(mut rapier_config: ResMut<RapierConfiguration>) {
@@ -101,6 +114,9 @@ struct Player;
 struct ObstacleCollider;
 
 #[derive(Component)]
+struct Obstacle;
+
+#[derive(Component)]
 struct ScoreSensor;
 
 #[derive(Component)]
@@ -146,8 +162,13 @@ fn spawn_obstacle(
 
     commands
         .spawn(Name::new("Obstacle"))
-        .insert(RigidBody::KinematicVelocityBased)
+        .insert(Obstacle)
+        .insert(RigidBody::Dynamic)
+        .insert(LockedAxes::TRANSLATION_LOCKED_Y)
         .insert(Velocity::linear(Vec2::NEG_X * 150.0))
+        .insert(Collider::cuboid(32.0, 378.0))
+        .insert(ActiveEvents::COLLISION_EVENTS)
+        .insert(Sensor)
         .insert(SpatialBundle::from_transform(Transform::from_translation(
             spawner_transform.translation + Vec3::Y * offset,
         )))
