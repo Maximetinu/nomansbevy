@@ -4,6 +4,14 @@ use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 use std::ops::Range;
 
+/*
+Fully aware that many of the patterns below are not Bevy/ECS idiomatic
+e.g. having an "obstacle spawner" entity instead of a system/resource
+or having a sensor bounds instead of just screen size...
+Damn, even using physics for such detection is overkilling
+So, big reminder that this is just experimentation !!!
+*/
+
 const TIME_STEP: f32 = 1.0 / 60.0;
 
 fn main() {
