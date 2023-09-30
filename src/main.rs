@@ -140,7 +140,7 @@ fn spawn_obstacle(
 ) {
     let (spawner_transform, spawner) = spawner_q.single();
 
-    let offset = rand::thread_rng().gen_range(spawner.range.clone());
+    let offset = thread_rng().gen_range(spawner.range.clone());
 
     let obstacle_handle: Handle<Image> = asset_server.load("sprites/obstacle.png");
 
