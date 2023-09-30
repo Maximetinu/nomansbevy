@@ -60,7 +60,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     let player_handle: Handle<Image> = asset_server.load("sprites/player.png");
     commands
         .spawn(Name::new("Player"))
-        .insert(Player {})
+        .insert(Player)
         .insert(RigidBody::Dynamic)
         .insert(LockedAxes::ROTATION_LOCKED)
         .insert(Velocity::zero())
@@ -89,9 +89,9 @@ fn spawn_bounds(mut commands: Commands) {
     commands
         .spawn(Name::new("Bounds"))
         .insert(TransformBundle::default())
-        .insert(BoundsSensor {})
+        .insert(BoundsSensor)
         .insert(Collider::cuboid(700.0, 400.0))
-        .insert(Sensor {});
+        .insert(Sensor);
 }
 
 #[derive(Component)]
@@ -154,7 +154,7 @@ fn spawn_obstacle(
         .with_children(|children| {
             children
                 .spawn(Name::new("Obstacle Up"))
-                .insert(ObstacleCollider {})
+                .insert(ObstacleCollider)
                 .insert(Collider::cuboid(32.0, 128.0))
                 .insert(SpriteBundle {
                     texture: obstacle_handle.clone(),
@@ -163,13 +163,13 @@ fn spawn_obstacle(
                 });
             children
                 .spawn(Name::new("Score sensor"))
-                .insert(ScoreSensor {})
+                .insert(ScoreSensor)
                 .insert(TransformBundle::default())
                 .insert(Collider::cuboid(10.0, 122.0))
                 .insert(Sensor);
             children
                 .spawn(Name::new("Obstacle Down"))
-                .insert(ObstacleCollider {})
+                .insert(ObstacleCollider)
                 .insert(Collider::cuboid(32.0, 128.0))
                 .insert(SpriteBundle {
                     texture: obstacle_handle.clone(),
