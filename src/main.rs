@@ -42,16 +42,11 @@ fn main() {
                 jump.run_if(just_pressed(KeyCode::Space)),
                 tick_spawn_timer,
                 spawn_obstacle.run_if(spawn_timer_just_finished),
-            ),
-        )
-        .add_systems(
-            PostUpdate,
-            (
+                get_collisions::<ObstacleParent, Bounds, Stopped>.pipe(despawn),
                 game_over.run_if(on_collision::<Player, ObstaclePart, Started>),
                 game_over.run_if(on_collision::<Player, Bounds, Stopped>),
                 score_up.run_if(on_collision::<Player, ObstacleScore, Started>),
                 print_score.run_if(resource_changed::<Score>()),
-                get_collisions::<ObstacleParent, Bounds, Stopped>.pipe(despawn),
             ),
         )
         .run();
