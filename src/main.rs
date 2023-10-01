@@ -51,16 +51,10 @@ fn main() {
                 game_over.run_if(on_collision::<Player, Bounds, Stopped>),
                 score_up.run_if(on_collision::<Player, ObstacleScore, Started>),
                 print_score.run_if(resource_changed::<Score>()),
-                get_collisions::<ObstacleParent, Bounds, Stopped>
-                    .pipe(map_pairs_lhs::<Entity>)
-                    .pipe(despawn),
+                get_collisions::<ObstacleParent, Bounds, Stopped>.pipe(despawn),
             ),
         )
         .run();
-}
-
-fn map_pairs_lhs<T: Clone>(In(pairs): In<Vec<(T, T)>>) -> Vec<T> {
-    pairs.iter().map(|(lhs, _)| lhs).cloned().collect()
 }
 
 fn despawn(In(entities): In<Vec<Entity>>, mut commands: Commands) {
@@ -238,11 +232,13 @@ fn on_collision<T: Component, U: Component, V: CollisionVariant>(
     !get_collisions::<T, U, V>(collision_events, first_q, second_q).is_empty()
 }
 
+// Alternatively, a more complex but powerful version
+// could return colliding pairs, i.e. Vec<(Entity, Entity)>
 fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
     mut collision_events: EventReader<CollisionEvent>,
     first_q: Query<Entity, With<T>>,
     second_q: Query<Entity, With<U>>,
-) -> Vec<(Entity, Entity)> {
+) -> Vec<Entity> {
     let first_entities: Vec<Entity> = first_q.iter().collect();
     let second_entities: Vec<Entity> = second_q.iter().collect();
     let mut collisions = vec![];
@@ -253,9 +249,9 @@ fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
             | (CollisionEvent::Stopped(col_1, col_2, _), CollisionType::Stopped) => {
                 // let's ensure that the colliding tuple is always (T, U) and not (U, T)
                 if first_entities.contains(col_1) && second_entities.contains(col_2) {
-                    collisions.push((col_1.clone(), col_2.clone()));
+                    collisions.push(col_1.clone());
                 } else if first_entities.contains(col_2) && second_entities.contains(col_1) {
-                    collisions.push((col_2.clone(), col_1.clone()));
+                    collisions.push(col_2.clone());
                 }
             }
             _ => {}
