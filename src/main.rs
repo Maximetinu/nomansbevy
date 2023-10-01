@@ -72,6 +72,10 @@ fn spawn_camera(mut commands: Commands) {
 }
 
 fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // dimensions of the player img, 64x64
+    const IMG_RES: f32 = 64.0;
+    const RADIUS: f32 = IMG_RES / 2.0;
+
     let player_handle: Handle<Image> = asset_server.load("sprites/player.png");
     commands
         .spawn(Name::new("Player"))
@@ -79,7 +83,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(RigidBody::Dynamic)
         .insert(LockedAxes::ROTATION_LOCKED)
         .insert(Velocity::zero())
-        .insert(Collider::ball(34.0))
+        .insert(Collider::ball(RADIUS))
         .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(SpriteBundle {
             texture: player_handle.clone(),
@@ -93,7 +97,7 @@ fn spawn_obstacle_spawner(mut commands: Commands) {
         .spawn(Name::new("Obstacle Spawner"))
         .insert(ObstacleSpawner {
             timer: Timer::from_seconds(3.0, TimerMode::Repeating),
-            range: -150.0..150.0,
+            range: -250.0..250.0,
         })
         .insert(TransformBundle::from(Transform::from_translation(
             Vec3::X * 700.0,
@@ -156,6 +160,24 @@ fn spawn_obstacle(
     asset_server: Res<AssetServer>,
     spawner_q: Query<(&Transform, &ObstacleSpawner)>,
 ) {
+    // dimensions of obstacle.png image
+    const PART_X: f32 = 64.0;
+    const PART_Y: f32 = 512.0;
+
+    // arbitrary gap, smaller means harder for the player
+    const GAP_HEIGHT: f32 = 140.0;
+
+    // calculations
+    const PART_DISPLACEMENT: f32 = GAP_HEIGHT / 2.0 + PART_Y / 2.0;
+    const PART_WIDTH: f32 = PART_X / 2.0;
+    const PART_HEIGHT: f32 = PART_Y / 2.0;
+    const SCORE_WIDTH: f32 = 2.0; // arbitrary, super thin is enough to detect the player
+    const SCORE_HEIGHT: f32 = GAP_HEIGHT / 2.0;
+    const TOTAL_HEIGHT: f32 = PART_HEIGHT * 2.0 + SCORE_HEIGHT;
+
+    // greater is harder for the player
+    const SPEED: f32 = 150.0;
+
     let (spawner_transform, spawner) = spawner_q.single();
 
     let offset = thread_rng().gen_range(spawner.range.clone());
@@ -167,8 +189,8 @@ fn spawn_obstacle(
         .insert(ObstacleParent)
         .insert(RigidBody::Dynamic)
         .insert(LockedAxes::TRANSLATION_LOCKED_Y)
-        .insert(Velocity::linear(Vec2::NEG_X * 150.0))
-        .insert(Collider::cuboid(32.0, 378.0))
+        .insert(Velocity::linear(Vec2::NEG_X * SPEED))
+        .insert(Collider::cuboid(PART_WIDTH, TOTAL_HEIGHT))
         .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(Sensor)
         .insert(SpatialBundle::from_transform(Transform::from_translation(
@@ -178,25 +200,25 @@ fn spawn_obstacle(
             children
                 .spawn(Name::new("Obstacle Up"))
                 .insert(ObstaclePart)
-                .insert(Collider::cuboid(32.0, 128.0))
+                .insert(Collider::cuboid(PART_WIDTH, PART_HEIGHT))
                 .insert(SpriteBundle {
                     texture: obstacle_handle.clone(),
-                    transform: Transform::from_translation(Vec3::Y * 250.0),
+                    transform: Transform::from_translation(Vec3::Y * PART_DISPLACEMENT),
                     ..default()
                 });
             children
                 .spawn(Name::new("Score sensor"))
                 .insert(ObstacleScore)
                 .insert(TransformBundle::default())
-                .insert(Collider::cuboid(10.0, 122.0))
+                .insert(Collider::cuboid(SCORE_WIDTH, SCORE_HEIGHT))
                 .insert(Sensor);
             children
                 .spawn(Name::new("Obstacle Down"))
                 .insert(ObstaclePart)
-                .insert(Collider::cuboid(32.0, 128.0))
+                .insert(Collider::cuboid(PART_WIDTH, PART_HEIGHT))
                 .insert(SpriteBundle {
                     texture: obstacle_handle.clone(),
-                    transform: Transform::from_translation(Vec3::NEG_Y * 250.0),
+                    transform: Transform::from_translation(Vec3::NEG_Y * PART_DISPLACEMENT),
                     ..default()
                 });
         });
