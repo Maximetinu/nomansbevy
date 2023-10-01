@@ -27,7 +27,6 @@ fn main() {
         .add_systems(
             Startup,
             (
-                setup_artificial_gravity,
                 spawn_camera,
                 spawn_player,
                 spawn_obstacle_spawner,
@@ -58,10 +57,6 @@ fn despawn(In(entities): In<Vec<Entity>>, mut commands: Commands) {
     }
 }
 
-fn setup_artificial_gravity(mut rapier_config: ResMut<RapierConfiguration>) {
-    rapier_config.gravity = Vec2::NEG_Y * 1400.0;
-}
-
 fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
@@ -76,6 +71,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn(Name::new("Player"))
         .insert(Player)
         .insert(RigidBody::Dynamic)
+        .insert(GravityScale(15.0))
         .insert(LockedAxes::ROTATION_LOCKED)
         .insert(Velocity::zero())
         .insert(Collider::ball(RADIUS))
