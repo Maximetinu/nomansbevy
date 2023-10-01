@@ -60,7 +60,7 @@ fn main() {
 }
 
 fn map_entity_pairs_lhs(In(entity_pairs): In<Vec<(Entity, Entity)>>) -> Vec<Entity> {
-    entity_pairs.iter().map(|(lhs, rhs)| lhs).cloned().collect()
+    entity_pairs.iter().map(|(lhs, _)| lhs).cloned().collect()
 }
 
 fn despawn(In(entities): In<Vec<Entity>>, mut commands: Commands) {
