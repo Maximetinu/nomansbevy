@@ -47,11 +47,11 @@ fn main() {
         .add_systems(
             PostUpdate,
             (
-                game_over.run_if(on_collision::<Player, ObstacleCollider, Started>),
-                game_over.run_if(on_collision::<Player, BoundsSensor, Stopped>),
-                score_up.run_if(on_collision::<Player, ScoreSensor, Started>),
+                game_over.run_if(on_collision::<Player, ObstaclePart, Started>),
+                game_over.run_if(on_collision::<Player, Bounds, Stopped>),
+                score_up.run_if(on_collision::<Player, ObstacleScore, Started>),
                 print_score.run_if(resource_changed::<Score>()),
-                get_collisions::<Obstacle, BoundsSensor, Stopped>
+                get_collisions::<ObstacleParent, Bounds, Stopped>
                     .pipe(map_entity_pairs_lhs)
                     .pipe(despawn),
             ),
@@ -110,7 +110,7 @@ fn spawn_bounds(mut commands: Commands) {
     commands
         .spawn(Name::new("Bounds"))
         .insert(TransformBundle::default())
-        .insert(BoundsSensor)
+        .insert(Bounds)
         .insert(Collider::cuboid(700.0, 400.0))
         .insert(Sensor);
 }
@@ -119,16 +119,16 @@ fn spawn_bounds(mut commands: Commands) {
 struct Player;
 
 #[derive(Component)]
-struct ObstacleCollider;
+struct ObstaclePart;
 
 #[derive(Component)]
-struct Obstacle;
+struct ObstacleParent;
 
 #[derive(Component)]
-struct ScoreSensor;
+struct ObstacleScore;
 
 #[derive(Component)]
-struct BoundsSensor;
+struct Bounds;
 
 #[derive(Component)]
 struct ObstacleSpawner {
@@ -170,7 +170,7 @@ fn spawn_obstacle(
 
     commands
         .spawn(Name::new("Obstacle"))
-        .insert(Obstacle)
+        .insert(ObstacleParent)
         .insert(RigidBody::Dynamic)
         .insert(LockedAxes::TRANSLATION_LOCKED_Y)
         .insert(Velocity::linear(Vec2::NEG_X * 150.0))
@@ -183,7 +183,7 @@ fn spawn_obstacle(
         .with_children(|children| {
             children
                 .spawn(Name::new("Obstacle Up"))
-                .insert(ObstacleCollider)
+                .insert(ObstaclePart)
                 .insert(Collider::cuboid(32.0, 128.0))
                 .insert(SpriteBundle {
                     texture: obstacle_handle.clone(),
@@ -192,13 +192,13 @@ fn spawn_obstacle(
                 });
             children
                 .spawn(Name::new("Score sensor"))
-                .insert(ScoreSensor)
+                .insert(ObstacleScore)
                 .insert(TransformBundle::default())
                 .insert(Collider::cuboid(10.0, 122.0))
                 .insert(Sensor);
             children
                 .spawn(Name::new("Obstacle Down"))
-                .insert(ObstacleCollider)
+                .insert(ObstaclePart)
                 .insert(Collider::cuboid(32.0, 128.0))
                 .insert(SpriteBundle {
                     texture: obstacle_handle.clone(),
