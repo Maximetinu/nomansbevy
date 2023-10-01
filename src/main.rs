@@ -46,9 +46,13 @@ fn main() {
                 game_over.run_if(on_collision::<Player, ObstaclePart, Started>),
                 game_over.run_if(on_collision::<Player, Bounds, Stopped>),
                 score_up.run_if(on_collision::<Player, ObstacleScore, Started>),
-                print_score.run_if(resource_changed::<Score>()),
+                // this is a nice way to manage printing the score
+                // print_score.run_if(resource_changed::<Score>()),
+                // but let's use events, just for the sake of learning
+                handle_score_changed,
             ),
         )
+        .add_event::<ScoreChanged>()
         .run();
 }
 
@@ -278,12 +282,18 @@ fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
     collisions
 }
 
-fn score_up(mut score: ResMut<Score>) {
+fn score_up(mut score: ResMut<Score>, mut ev_score_changed: EventWriter<ScoreChanged>) {
     **score += 1;
+    ev_score_changed.send(ScoreChanged(**score));
 }
 
-fn print_score(score: Res<Score>) {
-    println!("Current score: {}", **score);
+#[derive(Event)]
+struct ScoreChanged(u8);
+
+fn handle_score_changed(mut ev_score_changed: EventReader<ScoreChanged>) {
+    for ev in ev_score_changed.iter() {
+        eprintln!("Current score: {}", ev.0);
+    }
 }
 
 fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
