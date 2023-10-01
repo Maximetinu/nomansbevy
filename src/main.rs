@@ -52,15 +52,15 @@ fn main() {
                 score_up.run_if(on_collision::<Player, ObstacleScore, Started>),
                 print_score.run_if(resource_changed::<Score>()),
                 get_collisions::<ObstacleParent, Bounds, Stopped>
-                    .pipe(map_entity_pairs_lhs)
+                    .pipe(map_pairs_lhs::<Entity>)
                     .pipe(despawn),
             ),
         )
         .run();
 }
 
-fn map_entity_pairs_lhs(In(entity_pairs): In<Vec<(Entity, Entity)>>) -> Vec<Entity> {
-    entity_pairs.iter().map(|(lhs, _)| lhs).cloned().collect()
+fn map_pairs_lhs<T: Clone>(In(pairs): In<Vec<(T, T)>>) -> Vec<T> {
+    pairs.iter().map(|(lhs, _)| lhs).cloned().collect()
 }
 
 fn despawn(In(entities): In<Vec<Entity>>, mut commands: Commands) {
