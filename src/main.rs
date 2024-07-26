@@ -23,7 +23,7 @@ fn main() {
             RapierDebugRenderPlugin::default(),
         ))
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
-        .insert_resource(Score(0))
+        .insert_resource(ScoreSensor(0))
         .add_systems(
             Startup,
             (
@@ -41,11 +41,11 @@ fn main() {
                 jump.run_if(just_pressed(KeyCode::Space)),
                 tick_spawn_timer,
                 spawn_obstacle.run_if(spawn_timer_just_finished),
-                get_collisions::<ObstacleParent, Bounds, Stopped>.pipe(despawn),
+                get_collisions::<ObstacleRoot, Bounds, Stopped>.pipe(despawn),
                 game_over.run_if(on_collision::<Player, ObstaclePart, Started>),
                 game_over.run_if(on_collision::<Player, Bounds, Stopped>),
-                score_up.run_if(on_collision::<Player, ObstacleScore, Started>),
-                print_score.run_if(resource_changed::<Score>()),
+                score_up.run_if(on_collision::<Player, ScoreSensor, Started>),
+                print_score.run_if(resource_changed::<ScoreSensor>()),
             ),
         )
         .run();
@@ -111,10 +111,10 @@ struct Player;
 struct ObstaclePart;
 
 #[derive(Component)]
-struct ObstacleParent;
+struct ObstacleRoot;
 
 #[derive(Component)]
-struct ObstacleScore;
+struct ScoreSensor;
 
 #[derive(Component)]
 struct Bounds;
@@ -177,7 +177,7 @@ fn spawn_obstacle(
 
     commands
         .spawn(Name::new("Obstacle"))
-        .insert(ObstacleParent)
+        .insert(ObstacleRoot)
         .insert(RigidBody::Dynamic)
         .insert(LockedAxes::TRANSLATION_LOCKED_Y)
         .insert(Velocity::linear(Vec2::NEG_X * SPEED))
@@ -199,7 +199,7 @@ fn spawn_obstacle(
                 });
             children
                 .spawn(Name::new("Score sensor"))
-                .insert(ObstacleScore)
+                .insert(ScoreSensor)
                 .insert(TransformBundle::default())
                 .insert(Collider::cuboid(SCORE_WIDTH, SCORE_HEIGHT))
                 .insert(Sensor);
