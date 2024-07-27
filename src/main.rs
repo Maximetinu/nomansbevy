@@ -288,7 +288,7 @@ fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
     }
 }
 
-pub fn close_on_esc(
+fn close_on_esc(
     mut commands: Commands,
     focused_windows: Query<(Entity, &Window)>,
     input: Res<ButtonInput<KeyCode>>,
