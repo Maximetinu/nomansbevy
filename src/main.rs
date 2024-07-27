@@ -12,6 +12,7 @@ fn main() {
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
             RapierDebugRenderPlugin::default(),
         ))
+        .add_event::<GameOver>()
         .insert_resource(Score(0))
         .add_systems(
             Startup,
