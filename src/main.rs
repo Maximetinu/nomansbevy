@@ -27,7 +27,8 @@ fn main() {
             Update,
             (
                 close_on_esc,
-                jump.run_if(just_pressed(KeyCode::Space)),
+                // small experiment to define jump system scoped under Player impl:
+                Player::jump.run_if(just_pressed(KeyCode::Space)),
                 tick_spawn_timer,
                 spawn_obstacle.run_if(spawn_timer_just_finished),
                 get_collisions::<ObstacleRoot, Bounds, Stopped>.pipe(despawn),
@@ -97,6 +98,16 @@ fn spawn_bounds(mut commands: Commands) {
 #[derive(Component)]
 struct Player;
 
+impl Player {
+    // This way of declaring systems, inside of an impl, allows me to registerd them with Player::jump.
+    // Q: Is that Bevy idiomatic ? (i.e. Score::up may convince me, but Score::print does not)
+    fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
+        const JUMP_VELOCITY: f32 = 500.0;
+        let (_, mut player_rb) = player_q.single_mut();
+        player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
+    }
+}
+
 #[derive(Component)]
 struct ObstaclePart;
 
@@ -117,12 +128,6 @@ struct ObstacleSpawner {
 
 #[derive(Resource, Deref, DerefMut)]
 struct Score(u8); // yes, u8; if player reaches 255, he beats the game
-
-fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
-    const JUMP_VELOCITY: f32 = 500.0;
-    let (_, mut player_rb) = player_q.single_mut();
-    player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
-}
 
 fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<ButtonInput<KeyCode>>) -> bool {
     move |input: Res<ButtonInput<KeyCode>>| input.just_pressed(key_code)
