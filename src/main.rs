@@ -56,41 +56,42 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     const RADIUS: f32 = IMG_RES / 2.0;
 
     let player_handle: Handle<Image> = asset_server.load("sprites/player.png");
-    commands
-        .spawn(Name::new("Player"))
-        .insert(Player)
-        .insert(RigidBody::Dynamic)
-        .insert(GravityScale(2.0))
-        .insert(LockedAxes::ROTATION_LOCKED)
-        .insert(Velocity::zero())
-        .insert(Collider::ball(RADIUS))
-        .insert(ActiveEvents::COLLISION_EVENTS)
-        .insert(SpriteBundle {
+    commands.spawn((
+        Name::new("Player"),
+        Player,
+        RigidBody::Dynamic,
+        GravityScale(2.0),
+        LockedAxes::ROTATION_LOCKED,
+        Velocity::zero(),
+        Collider::ball(RADIUS),
+        ActiveEvents::COLLISION_EVENTS,
+        SpriteBundle {
             texture: player_handle.clone(),
             transform: Transform::default(),
             ..default()
-        });
+        },
+    ));
 }
 
 fn spawn_obstacle_spawner(mut commands: Commands) {
-    commands
-        .spawn(Name::new("Obstacle Spawner"))
-        .insert(ObstacleSpawner {
+    commands.spawn((
+        Name::new("Obstacle Spawner"),
+        ObstacleSpawner {
             timer: Timer::from_seconds(3.0, TimerMode::Repeating),
             range: -250.0..250.0,
-        })
-        .insert(TransformBundle::from(Transform::from_translation(
-            Vec3::X * 700.0,
-        )));
+        },
+        TransformBundle::from(Transform::from_translation(Vec3::X * 700.0)),
+    ));
 }
 
 fn spawn_bounds(mut commands: Commands) {
-    commands
-        .spawn(Name::new("Bounds"))
-        .insert(TransformBundle::default())
-        .insert(Bounds)
-        .insert(Collider::cuboid(700.0, 400.0))
-        .insert(Sensor);
+    commands.spawn((
+        Name::new("Bounds"),
+        TransformBundle::default(),
+        Bounds,
+        Collider::cuboid(700.0, 400.0),
+        Sensor,
+    ));
 }
 
 #[derive(Component)]
@@ -165,42 +166,47 @@ fn spawn_obstacle(
     let obstacle_handle: Handle<Image> = asset_server.load("sprites/obstacle.png");
 
     commands
-        .spawn(Name::new("Obstacle"))
-        .insert(ObstacleRoot)
-        .insert(RigidBody::Dynamic)
-        .insert(LockedAxes::TRANSLATION_LOCKED_Y)
-        .insert(Velocity::linear(Vec2::NEG_X * SPEED))
-        .insert(Collider::cuboid(PART_WIDTH, TOTAL_HEIGHT))
-        .insert(ActiveEvents::COLLISION_EVENTS)
-        .insert(Sensor)
-        .insert(SpatialBundle::from_transform(Transform::from_translation(
-            spawner_transform.translation + Vec3::Y * offset,
-        )))
+        .spawn((
+            Name::new("Obstacle"),
+            ObstacleRoot,
+            RigidBody::Dynamic,
+            LockedAxes::TRANSLATION_LOCKED_Y,
+            Velocity::linear(Vec2::NEG_X * SPEED),
+            Collider::cuboid(PART_WIDTH, TOTAL_HEIGHT),
+            ActiveEvents::COLLISION_EVENTS,
+            Sensor,
+            SpatialBundle::from_transform(Transform::from_translation(
+                spawner_transform.translation + Vec3::Y * offset,
+            )),
+        ))
         .with_children(|children| {
-            children
-                .spawn(Name::new("Obstacle Up"))
-                .insert(ObstaclePart)
-                .insert(Collider::cuboid(PART_WIDTH, PART_HEIGHT))
-                .insert(SpriteBundle {
+            children.spawn((
+                Name::new("Obstacle Up"),
+                ObstaclePart,
+                Collider::cuboid(PART_WIDTH, PART_HEIGHT),
+                SpriteBundle {
                     texture: obstacle_handle.clone(),
                     transform: Transform::from_translation(Vec3::Y * PART_DISPLACEMENT),
                     ..default()
-                });
-            children
-                .spawn(Name::new("Score sensor"))
-                .insert(ScoreSensor)
-                .insert(TransformBundle::default())
-                .insert(Collider::cuboid(SCORE_WIDTH, SCORE_HEIGHT))
-                .insert(Sensor);
-            children
-                .spawn(Name::new("Obstacle Down"))
-                .insert(ObstaclePart)
-                .insert(Collider::cuboid(PART_WIDTH, PART_HEIGHT))
-                .insert(SpriteBundle {
+                },
+            ));
+            children.spawn((
+                Name::new("Score sensor"),
+                ScoreSensor,
+                TransformBundle::default(),
+                Collider::cuboid(SCORE_WIDTH, SCORE_HEIGHT),
+                Sensor,
+            ));
+            children.spawn((
+                Name::new("Obstacle Down"),
+                ObstaclePart,
+                Collider::cuboid(PART_WIDTH, PART_HEIGHT),
+                SpriteBundle {
                     texture: obstacle_handle.clone(),
                     transform: Transform::from_translation(Vec3::NEG_Y * PART_DISPLACEMENT),
                     ..default()
-                });
+                },
+            ));
         });
 }
 
