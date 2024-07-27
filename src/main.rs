@@ -26,14 +26,15 @@ fn main() {
         .add_systems(
             Update,
             (
-                close_on_esc,
+                close.run_if(just_pressed(KeyCode::Escape)),
+                close.run_if(on_game_over),
                 // small experiment to define jump system scoped under Player impl:
                 Player::jump.run_if(just_pressed(KeyCode::Space)),
                 tick_spawn_timer,
                 spawn_obstacle.run_if(spawn_timer_just_finished),
                 get_collisions::<ObstacleRoot, Bounds, Stopped>.pipe(despawn),
-                game_over.run_if(on_collision::<Player, ObstaclePart, Started>),
-                game_over.run_if(on_collision::<Player, Bounds, Stopped>),
+                emit_game_over.run_if(on_collision::<Player, ObstaclePart, Started>),
+                emit_game_over.run_if(on_collision::<Player, Bounds, Stopped>),
                 score_up.run_if(on_collision::<Player, ScoreSensor, Started>),
                 print_score.run_if(resource_changed::<Score>),
             ),
@@ -51,27 +52,20 @@ fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<ButtonInput<KeyCode>>) -> b
     move |input: Res<ButtonInput<KeyCode>>| input.just_pressed(key_code)
 }
 
-fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
-    for (window, _) in windows_q.iter() {
-        commands.entity(window).despawn();
-    }
+#[derive(Event)]
+struct GameOver;
+
+fn emit_game_over(mut evts: EventWriter<GameOver>) {
+    evts.send(GameOver);
 }
 
-// I could go even further with composable systems, like `get_windows.pipe(despawn).run_if(just_pressed(KeyCode::Escape))`
-// or make game_over emit an event and do `get_windows.pipe(despawn).run_if(game_over)`
-fn close_on_esc(
-    mut commands: Commands,
-    focused_windows: Query<(Entity, &Window)>,
-    input: Res<ButtonInput<KeyCode>>,
-) {
-    for (window, focus) in focused_windows.iter() {
-        if !focus.focused {
-            continue;
-        }
+fn on_game_over(evts: EventReader<GameOver>) -> bool {
+    !evts.is_empty()
+}
 
-        if input.just_pressed(KeyCode::Escape) {
-            commands.entity(window).despawn();
-        }
+fn close(mut commands: Commands, window_q: Query<Entity, With<Window>>) {
+    for window in window_q.iter() {
+        commands.entity(window).despawn();
     }
 }
 
