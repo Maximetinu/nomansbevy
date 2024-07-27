@@ -47,8 +47,47 @@ fn despawn(In(entities): In<Vec<Entity>>, mut commands: Commands) {
     }
 }
 
+fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<ButtonInput<KeyCode>>) -> bool {
+    move |input: Res<ButtonInput<KeyCode>>| input.just_pressed(key_code)
+}
+
+fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
+    for (window, _) in windows_q.iter() {
+        commands.entity(window).despawn();
+    }
+}
+
+fn close_on_esc(
+    mut commands: Commands,
+    focused_windows: Query<(Entity, &Window)>,
+    input: Res<ButtonInput<KeyCode>>,
+) {
+    for (window, focus) in focused_windows.iter() {
+        if !focus.focused {
+            continue;
+        }
+
+        if input.just_pressed(KeyCode::Escape) {
+            commands.entity(window).despawn();
+        }
+    }
+}
+
 fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
+}
+
+#[derive(Component)]
+struct Player;
+
+impl Player {
+    // This way of declaring systems, inside of an impl, allows me to registerd them with Player::jump.
+    // Q: Is that Bevy idiomatic ? (i.e. Score::up may convince me, but Score::print does not)
+    fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
+        const JUMP_VELOCITY: f32 = 500.0;
+        let (_, mut player_rb) = player_q.single_mut();
+        player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
+    }
 }
 
 fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -74,6 +113,12 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
+#[derive(Component)]
+struct ObstacleSpawner {
+    pub timer: Timer,
+    pub range: Range<f32>,
+}
+
 fn spawn_obstacle_spawner(mut commands: Commands) {
     commands.spawn((
         Name::new("Obstacle Spawner"),
@@ -85,6 +130,17 @@ fn spawn_obstacle_spawner(mut commands: Commands) {
     ));
 }
 
+fn tick_spawn_timer(time: Res<Time>, mut spawner_q: Query<&mut ObstacleSpawner>) {
+    spawner_q.single_mut().timer.tick(time.delta());
+}
+
+fn spawn_timer_just_finished(spawner_q: Query<&ObstacleSpawner>) -> bool {
+    spawner_q.single().timer.just_finished()
+}
+
+#[derive(Component)]
+struct Bounds;
+
 fn spawn_bounds(mut commands: Commands) {
     commands.spawn((
         Name::new("Bounds"),
@@ -95,17 +151,15 @@ fn spawn_bounds(mut commands: Commands) {
     ));
 }
 
-#[derive(Component)]
-struct Player;
+#[derive(Resource, Deref, DerefMut)]
+struct Score(u8); // yes, u8; if player reaches 255, he beats the game
 
-impl Player {
-    // This way of declaring systems, inside of an impl, allows me to registerd them with Player::jump.
-    // Q: Is that Bevy idiomatic ? (i.e. Score::up may convince me, but Score::print does not)
-    fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
-        const JUMP_VELOCITY: f32 = 500.0;
-        let (_, mut player_rb) = player_q.single_mut();
-        player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
-    }
+fn score_up(mut score: ResMut<Score>) {
+    **score += 1;
+}
+
+fn print_score(score: Res<Score>) {
+    println!("Current score: {}", **score);
 }
 
 #[derive(Component)]
@@ -116,30 +170,6 @@ struct ObstacleRoot;
 
 #[derive(Component)]
 struct ScoreSensor;
-
-#[derive(Component)]
-struct Bounds;
-
-#[derive(Component)]
-struct ObstacleSpawner {
-    pub timer: Timer,
-    pub range: Range<f32>,
-}
-
-#[derive(Resource, Deref, DerefMut)]
-struct Score(u8); // yes, u8; if player reaches 255, he beats the game
-
-fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<ButtonInput<KeyCode>>) -> bool {
-    move |input: Res<ButtonInput<KeyCode>>| input.just_pressed(key_code)
-}
-
-fn tick_spawn_timer(time: Res<Time>, mut spawner_q: Query<&mut ObstacleSpawner>) {
-    spawner_q.single_mut().timer.tick(time.delta());
-}
-
-fn spawn_timer_just_finished(spawner_q: Query<&ObstacleSpawner>) -> bool {
-    spawner_q.single().timer.just_finished()
-}
 
 fn spawn_obstacle(
     mut commands: Commands,
@@ -272,34 +302,4 @@ fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
     }
 
     collisions
-}
-
-fn score_up(mut score: ResMut<Score>) {
-    **score += 1;
-}
-
-fn print_score(score: Res<Score>) {
-    println!("Current score: {}", **score);
-}
-
-fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
-    for (window, _) in windows_q.iter() {
-        commands.entity(window).despawn();
-    }
-}
-
-fn close_on_esc(
-    mut commands: Commands,
-    focused_windows: Query<(Entity, &Window)>,
-    input: Res<ButtonInput<KeyCode>>,
-) {
-    for (window, focus) in focused_windows.iter() {
-        if !focus.focused {
-            continue;
-        }
-
-        if input.just_pressed(KeyCode::Escape) {
-            commands.entity(window).despawn();
-        }
-    }
 }
