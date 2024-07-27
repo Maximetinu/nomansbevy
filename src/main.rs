@@ -45,7 +45,7 @@ fn main() {
                 game_over.run_if(on_collision::<Player, ObstaclePart, Started>),
                 game_over.run_if(on_collision::<Player, Bounds, Stopped>),
                 score_up.run_if(on_collision::<Player, ScoreSensor, Started>),
-                print_score.run_if(resource_changed::<ScoreSensor>()),
+                print_score.run_if(resource_changed::<Score>),
             ),
         )
         .run();
