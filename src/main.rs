@@ -23,7 +23,7 @@ fn main() {
             RapierDebugRenderPlugin::default(),
         ))
         .insert_resource(FixedTime::new_from_secs(TIME_STEP))
-        .insert_resource(ScoreSensor(0))
+        .insert_resource(Score(0))
         .add_systems(
             Startup,
             (
