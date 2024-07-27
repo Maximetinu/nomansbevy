@@ -33,8 +33,8 @@ fn main() {
                 tick_spawn_timer,
                 spawn_obstacle.run_if(spawn_timer_just_finished),
                 get_collisions::<ObstacleRoot, Bounds, Stopped>.pipe(despawn),
-                emit_game_over.run_if(on_collision::<Player, ObstaclePart, Started>),
-                emit_game_over.run_if(on_collision::<Player, Bounds, Stopped>),
+                game_over.run_if(on_collision::<Player, ObstaclePart, Started>),
+                game_over.run_if(on_collision::<Player, Bounds, Stopped>),
                 score_up.run_if(on_collision::<Player, ScoreSensor, Started>),
                 print_score.run_if(resource_changed::<Score>),
             ),
@@ -55,7 +55,7 @@ fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<ButtonInput<KeyCode>>) -> b
 #[derive(Event)]
 struct GameOver;
 
-fn emit_game_over(mut evts: EventWriter<GameOver>) {
+fn game_over(mut evts: EventWriter<GameOver>) {
     evts.send(GameOver);
 }
 
