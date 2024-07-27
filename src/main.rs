@@ -57,6 +57,8 @@ fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
     }
 }
 
+// I could go even further with composable systems, like `get_windows.pipe(despawn).run_if(just_pressed(KeyCode::Escape))`
+// or make game_over emit an event and do `get_windows.pipe(despawn).run_if(game_over)`
 fn close_on_esc(
     mut commands: Commands,
     focused_windows: Query<(Entity, &Window)>,
