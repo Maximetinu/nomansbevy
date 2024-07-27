@@ -18,7 +18,7 @@ lto = "thin" # this affects compilation times *a lot*
 
 [dependencies]
 # remember to remove dynamic_linking for releases
-bevy = { version = "0.11.0", features = ["dynamic_linking"] }
-bevy-inspector-egui = "0.19.0"
-bevy_rapier2d = { version = "0.22.0", features = ["debug-render-2d" ] }
+bevy = { version = "0.14", features = ["dynamic_linking"] }
+bevy-inspector-egui = "0.25"
+bevy_rapier2d = { version = "0.27", features = ["debug-render-2d"] }
 rand = "0.8.5"

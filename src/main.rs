@@ -12,8 +12,6 @@ Damn, even using physics for such detection is overkilling
 So, big reminder that this is just experimentation !!!
 */
 
-const TIME_STEP: f32 = 1.0 / 60.0;
-
 fn main() {
     App::new()
         .add_plugins((
@@ -22,7 +20,6 @@ fn main() {
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
             RapierDebugRenderPlugin::default(),
         ))
-        .insert_resource(FixedTime::new_from_secs(TIME_STEP))
         .insert_resource(Score(0))
         .add_systems(
             Startup,
@@ -37,7 +34,7 @@ fn main() {
         .add_systems(
             Update,
             (
-                bevy::window::close_on_esc,
+                close_on_esc,
                 jump.run_if(just_pressed(KeyCode::Space)),
                 tick_spawn_timer,
                 spawn_obstacle.run_if(spawn_timer_just_finished),
@@ -71,7 +68,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn(Name::new("Player"))
         .insert(Player)
         .insert(RigidBody::Dynamic)
-        .insert(GravityScale(15.0))
+        .insert(GravityScale(2.0))
         .insert(LockedAxes::ROTATION_LOCKED)
         .insert(Velocity::zero())
         .insert(Collider::ball(RADIUS))
@@ -129,13 +126,13 @@ struct ObstacleSpawner {
 struct Score(u8); // yes, u8; if player reaches 255, he beats the game
 
 fn jump(mut player_q: Query<(&Player, &mut Velocity)>) {
-    const JUMP_VELOCITY: f32 = 400.0;
+    const JUMP_VELOCITY: f32 = 500.0;
     let (_, mut player_rb) = player_q.single_mut();
     player_rb.linvel = Vec2::Y * JUMP_VELOCITY;
 }
 
-fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<Input<KeyCode>>) -> bool {
-    move |input: Res<Input<KeyCode>>| input.just_pressed(key_code)
+fn just_pressed(key_code: KeyCode) -> impl FnMut(Res<ButtonInput<KeyCode>>) -> bool {
+    move |input: Res<ButtonInput<KeyCode>>| input.just_pressed(key_code)
 }
 
 fn tick_spawn_timer(time: Res<Time>, mut spawner_q: Query<&mut ObstacleSpawner>) {
@@ -256,14 +253,14 @@ fn get_collisions<T: Component, U: Component, V: CollisionVariant>(
     let second_entities: Vec<Entity> = second_q.iter().collect();
     let mut collisions = vec![];
 
-    for collision_event in collision_events.iter() {
+    for collision_event in collision_events.read() {
         match (collision_event, V::VARIANT) {
             (CollisionEvent::Started(col_1, col_2, _), CollisionType::Started)
             | (CollisionEvent::Stopped(col_1, col_2, _), CollisionType::Stopped) => {
                 // let's ensure that the colliding tuple is always (T, U) and not (U, T)
-                if first_entities.contains(col_1) && second_entities.contains(col_2) {
+                if first_entities.contains(&col_1) && second_entities.contains(&col_2) {
                     collisions.push(col_1.clone());
-                } else if first_entities.contains(col_2) && second_entities.contains(col_1) {
+                } else if first_entities.contains(&col_2) && second_entities.contains(&col_1) {
                     collisions.push(col_2.clone());
                 }
             }
@@ -285,5 +282,21 @@ fn print_score(score: Res<Score>) {
 fn game_over(mut commands: Commands, windows_q: Query<(Entity, &Window)>) {
     for (window, _) in windows_q.iter() {
         commands.entity(window).despawn();
+    }
+}
+
+pub fn close_on_esc(
+    mut commands: Commands,
+    focused_windows: Query<(Entity, &Window)>,
+    input: Res<ButtonInput<KeyCode>>,
+) {
+    for (window, focus) in focused_windows.iter() {
+        if !focus.focused {
+            continue;
+        }
+
+        if input.just_pressed(KeyCode::Escape) {
+            commands.entity(window).despawn();
+        }
     }
 }
